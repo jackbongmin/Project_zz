@@ -1,5 +1,6 @@
 #include "player_controller.h"
 
+#include <godot_cpp/classes/animation.hpp>
 #include <godot_cpp/classes/engine.hpp>
 #include <godot_cpp/classes/geometry_instance3d.hpp>
 #include <godot_cpp/classes/input.hpp>
@@ -63,6 +64,22 @@ void PlayerController::_bind_methods() {
 	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "mouse_sensitivity", PROPERTY_HINT_RANGE, "0.0001,0.02,0.0001"), "set_mouse_sensitivity", "get_mouse_sensitivity");
 	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "third_person_distance", PROPERTY_HINT_RANGE, "1,10,0.1"), "set_third_person_distance", "get_third_person_distance");
 
+	ClassDB::bind_method(D_METHOD("set_anim_idle", "value"), &PlayerController::set_anim_idle);
+	ClassDB::bind_method(D_METHOD("get_anim_idle"), &PlayerController::get_anim_idle);
+	ClassDB::bind_method(D_METHOD("set_anim_walk", "value"), &PlayerController::set_anim_walk);
+	ClassDB::bind_method(D_METHOD("get_anim_walk"), &PlayerController::get_anim_walk);
+	ClassDB::bind_method(D_METHOD("set_anim_run", "value"), &PlayerController::set_anim_run);
+	ClassDB::bind_method(D_METHOD("get_anim_run"), &PlayerController::get_anim_run);
+	ClassDB::bind_method(D_METHOD("set_anim_blend", "value"), &PlayerController::set_anim_blend);
+	ClassDB::bind_method(D_METHOD("get_anim_blend"), &PlayerController::get_anim_blend);
+	ClassDB::bind_method(D_METHOD("get_current_animation"), &PlayerController::get_current_animation);
+
+	ADD_GROUP("Animation", "anim_");
+	ADD_PROPERTY(PropertyInfo(Variant::STRING, "anim_idle"), "set_anim_idle", "get_anim_idle");
+	ADD_PROPERTY(PropertyInfo(Variant::STRING, "anim_walk"), "set_anim_walk", "get_anim_walk");
+	ADD_PROPERTY(PropertyInfo(Variant::STRING, "anim_run"), "set_anim_run", "get_anim_run");
+	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "anim_blend", PROPERTY_HINT_RANGE, "0,1,0.01"), "set_anim_blend", "get_anim_blend");
+
 	ADD_SIGNAL(MethodInfo("view_mode_changed", PropertyInfo(Variant::INT, "mode")));
 }
 
@@ -106,6 +123,50 @@ void PlayerController::_ready() {
 
 	Input::get_singleton()->set_mouse_mode(Input::MOUSE_MODE_CAPTURED);
 	apply_view_mode();
+	setup_animation();
+}
+
+void PlayerController::setup_animation() {
+	if (!body) {
+		return;
+	}
+	TypedArray<Node> found = body->find_children("*", "AnimationPlayer", true, false);
+	if (found.is_empty()) {
+		return; // placeholder body without animations is fine
+	}
+	anim_player = Object::cast_to<AnimationPlayer>(found[0]);
+	if (!anim_player) {
+		return;
+	}
+	// glTF clips import as one-shot; locomotion clips must loop.
+	const String looping[] = { anim_idle, anim_walk, anim_run };
+	for (const String &name : looping) {
+		if (anim_player->has_animation(name)) {
+			Ref<Animation> clip = anim_player->get_animation(name);
+			clip->set_loop_mode(Animation::LOOP_LINEAR);
+		} else {
+			WARN_PRINT(String("PlayerController: animation '") + name + "' not found in Body model.");
+		}
+	}
+	if (anim_player->has_animation(anim_idle)) {
+		anim_player->play(anim_idle);
+	}
+}
+
+void PlayerController::update_animation(bool p_sprinting) {
+	if (!anim_player || !is_on_floor()) {
+		return; // keep the current clip while airborne
+	}
+	const Vector3 v = get_velocity();
+	const double horizontal_speed = Vector2(v.x, v.z).length();
+
+	String target = anim_idle;
+	if (horizontal_speed > 0.2) {
+		target = (p_sprinting && horizontal_speed > walk_speed + 0.3) ? anim_run : anim_walk;
+	}
+	if (anim_player->get_current_animation() != target && anim_player->has_animation(target)) {
+		anim_player->play(target, anim_blend);
+	}
 }
 
 void PlayerController::_unhandled_input(const Ref<InputEvent> &p_event) {
@@ -152,13 +213,15 @@ void PlayerController::_physics_process(double p_delta) {
 		direction = direction.normalized();
 	}
 
-	const double speed = input->is_action_pressed("sprint") ? sprint_speed : walk_speed;
+	const bool sprinting = input->is_action_pressed("sprint");
+	const double speed = sprinting ? sprint_speed : walk_speed;
 	const double step = acceleration * speed * p_delta;
 	velocity.x = approach(velocity.x, direction.x * speed, step);
 	velocity.z = approach(velocity.z, direction.z * speed, step);
 
 	set_velocity(velocity);
 	move_and_slide();
+	update_animation(sprinting);
 }
 
 void PlayerController::toggle_view() {
@@ -225,3 +288,16 @@ void PlayerController::set_third_person_distance(double p_value) {
 	}
 }
 double PlayerController::get_third_person_distance() const { return third_person_distance; }
+
+void PlayerController::set_anim_idle(const String &p_value) { anim_idle = p_value; }
+String PlayerController::get_anim_idle() const { return anim_idle; }
+void PlayerController::set_anim_walk(const String &p_value) { anim_walk = p_value; }
+String PlayerController::get_anim_walk() const { return anim_walk; }
+void PlayerController::set_anim_run(const String &p_value) { anim_run = p_value; }
+String PlayerController::get_anim_run() const { return anim_run; }
+void PlayerController::set_anim_blend(double p_value) { anim_blend = p_value; }
+double PlayerController::get_anim_blend() const { return anim_blend; }
+
+String PlayerController::get_current_animation() const {
+	return anim_player ? String(anim_player->get_current_animation()) : String();
+}

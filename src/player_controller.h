@@ -1,5 +1,6 @@
 #pragma once
 
+#include <godot_cpp/classes/animation_player.hpp>
 #include <godot_cpp/classes/camera3d.hpp>
 #include <godot_cpp/classes/character_body3d.hpp>
 #include <godot_cpp/classes/input_event.hpp>
@@ -33,7 +34,14 @@ private:
 	double third_person_distance = 3.5;
 	int view_mode = VIEW_FIRST_PERSON;
 
+	// Animation clip names inside the Body model's AnimationPlayer
+	String anim_idle = "CharacterArmature|Idle";
+	String anim_walk = "CharacterArmature|Walk";
+	String anim_run = "CharacterArmature|Run";
+	double anim_blend = 0.15;
+
 	// Runtime state
+	AnimationPlayer *anim_player = nullptr;
 	double pitch = 0.0;
 	double gravity = 9.8;
 
@@ -46,6 +54,8 @@ private:
 	static void ensure_input_actions();
 	void apply_view_mode();
 	void set_body_shadow_only(Node *p_node, bool p_shadow_only);
+	void setup_animation();
+	void update_animation(bool p_sprinting);
 
 protected:
 	static void _bind_methods();
@@ -71,6 +81,15 @@ public:
 	double get_mouse_sensitivity() const;
 	void set_third_person_distance(double p_value);
 	double get_third_person_distance() const;
+	void set_anim_idle(const String &p_value);
+	String get_anim_idle() const;
+	void set_anim_walk(const String &p_value);
+	String get_anim_walk() const;
+	void set_anim_run(const String &p_value);
+	String get_anim_run() const;
+	void set_anim_blend(double p_value);
+	double get_anim_blend() const;
+	String get_current_animation() const;
 };
 
 } // namespace godot
