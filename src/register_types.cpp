@@ -5,6 +5,12 @@
 #include <godot_cpp/godot.hpp>
 
 #include "auto_collider.h"
+#include "game_hud.h"
+#include "inventory.h"
+#include "inventory_slot.h"
+#include "inventory_ui.h"
+#include "item_data.h"
+#include "pickup_item.h"
 #include "player_controller.h"
 
 using namespace godot;
@@ -13,8 +19,14 @@ void initialize_project_zz(ModuleInitializationLevel p_level) {
 	if (p_level != MODULE_INITIALIZATION_LEVEL_SCENE) {
 		return;
 	}
+	GDREGISTER_CLASS(ItemData);
+	GDREGISTER_CLASS(Inventory);
+	GDREGISTER_CLASS(PickupItem);
 	GDREGISTER_CLASS(PlayerController);
 	GDREGISTER_CLASS(AutoCollider);
+	GDREGISTER_CLASS(InventorySlot);
+	GDREGISTER_CLASS(InventoryUI);
+	GDREGISTER_CLASS(GameHUD);
 }
 
 void uninitialize_project_zz(ModuleInitializationLevel p_level) {
