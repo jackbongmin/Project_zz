@@ -4,6 +4,7 @@
 #include <godot_cpp/core/defs.hpp>
 #include <godot_cpp/godot.hpp>
 
+#include "auto_collider.h"
 #include "player_controller.h"
 
 using namespace godot;
@@ -13,6 +14,7 @@ void initialize_project_zz(ModuleInitializationLevel p_level) {
 		return;
 	}
 	GDREGISTER_CLASS(PlayerController);
+	GDREGISTER_CLASS(AutoCollider);
 }
 
 void uninitialize_project_zz(ModuleInitializationLevel p_level) {
