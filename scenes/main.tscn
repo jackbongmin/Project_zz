@@ -1,0 +1,220 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/player/player.tscn" id="1_player"]
+
+[sub_resource type="ProceduralSkyMaterial" id="Sky_mat"]
+sky_top_color = Color(0.42, 0.45, 0.4, 1)
+sky_horizon_color = Color(0.72, 0.68, 0.55, 1)
+ground_bottom_color = Color(0.25, 0.23, 0.2, 1)
+ground_horizon_color = Color(0.72, 0.68, 0.55, 1)
+
+[sub_resource type="Sky" id="Sky_1"]
+sky_material = SubResource("Sky_mat")
+
+[sub_resource type="Environment" id="Env_1"]
+background_mode = 2
+sky = SubResource("Sky_1")
+ambient_light_source = 3
+tonemap_mode = 2
+fog_enabled = true
+fog_light_color = Color(0.7, 0.68, 0.52, 1)
+fog_density = 0.015
+
+[sub_resource type="StandardMaterial3D" id="Mat_dirt"]
+albedo_color = Color(0.45, 0.4, 0.3, 1)
+roughness = 1.0
+
+[sub_resource type="BoxMesh" id="Mesh_ground"]
+material = SubResource("Mat_dirt")
+size = Vector3(80, 1, 80)
+
+[sub_resource type="BoxShape3D" id="Shape_ground"]
+size = Vector3(80, 1, 80)
+
+[sub_resource type="StandardMaterial3D" id="Mat_wall"]
+albedo_color = Color(0.62, 0.58, 0.52, 1)
+roughness = 1.0
+
+[sub_resource type="BoxMesh" id="Mesh_wall_long"]
+material = SubResource("Mat_wall")
+size = Vector3(8, 3, 0.2)
+
+[sub_resource type="BoxShape3D" id="Shape_wall_long"]
+size = Vector3(8, 3, 0.2)
+
+[sub_resource type="BoxMesh" id="Mesh_wall_side"]
+material = SubResource("Mat_wall")
+size = Vector3(0.2, 3, 8)
+
+[sub_resource type="BoxShape3D" id="Shape_wall_side"]
+size = Vector3(0.2, 3, 8)
+
+[sub_resource type="BoxMesh" id="Mesh_wall_broken"]
+material = SubResource("Mat_wall")
+size = Vector3(0.2, 1.4, 8)
+
+[sub_resource type="BoxShape3D" id="Shape_wall_broken"]
+size = Vector3(0.2, 1.4, 8)
+
+[sub_resource type="BoxMesh" id="Mesh_wall_front"]
+material = SubResource("Mat_wall")
+size = Vector3(3, 3, 0.2)
+
+[sub_resource type="BoxShape3D" id="Shape_wall_front"]
+size = Vector3(3, 3, 0.2)
+
+[sub_resource type="StandardMaterial3D" id="Mat_wood"]
+albedo_color = Color(0.4, 0.28, 0.18, 1)
+
+[sub_resource type="BoxMesh" id="Mesh_floor"]
+material = SubResource("Mat_wood")
+size = Vector3(8, 0.1, 8)
+
+[sub_resource type="BoxShape3D" id="Shape_floor"]
+size = Vector3(8, 0.1, 8)
+
+[sub_resource type="StandardMaterial3D" id="Mat_crate"]
+albedo_color = Color(0.55, 0.42, 0.22, 1)
+
+[sub_resource type="BoxMesh" id="Mesh_crate"]
+material = SubResource("Mat_crate")
+size = Vector3(0.8, 0.8, 0.8)
+
+[sub_resource type="BoxShape3D" id="Shape_crate"]
+size = Vector3(0.8, 0.8, 0.8)
+
+[sub_resource type="StandardMaterial3D" id="Mat_rust"]
+albedo_color = Color(0.5, 0.25, 0.15, 1)
+roughness = 0.8
+metallic = 0.3
+
+[sub_resource type="BoxMesh" id="Mesh_car"]
+material = SubResource("Mat_rust")
+size = Vector3(4.2, 1.4, 1.9)
+
+[sub_resource type="BoxShape3D" id="Shape_car"]
+size = Vector3(4.2, 1.4, 1.9)
+
+[sub_resource type="StandardMaterial3D" id="Mat_radiation"]
+transparency = 1
+albedo_color = Color(0.35, 1, 0.2, 0.25)
+emission_enabled = true
+emission = Color(0.3, 1, 0.15, 1)
+emission_energy_multiplier = 1.5
+
+[sub_resource type="CylinderMesh" id="Mesh_radiation"]
+material = SubResource("Mat_radiation")
+top_radius = 6.0
+bottom_radius = 6.0
+height = 0.05
+radial_segments = 24
+
+[node name="Main" type="Node3D"]
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Env_1")
+
+[node name="Sun" type="DirectionalLight3D" parent="."]
+transform = Transform3D(0.866, -0.354, 0.354, 0, 0.707, 0.707, -0.5, -0.612, 0.612, 0, 10, 0)
+light_color = Color(1, 0.92, 0.78, 1)
+shadow_enabled = true
+
+[node name="Ground" type="StaticBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.5, 0)
+
+[node name="Mesh" type="MeshInstance3D" parent="Ground"]
+mesh = SubResource("Mesh_ground")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Ground"]
+shape = SubResource("Shape_ground")
+
+[node name="RuinedHouse" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -12)
+
+[node name="Floor" type="StaticBody3D" parent="RuinedHouse"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.05, 0)
+
+[node name="Mesh" type="MeshInstance3D" parent="RuinedHouse/Floor"]
+mesh = SubResource("Mesh_floor")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="RuinedHouse/Floor"]
+shape = SubResource("Shape_floor")
+
+[node name="WallBack" type="StaticBody3D" parent="RuinedHouse"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.5, -4)
+
+[node name="Mesh" type="MeshInstance3D" parent="RuinedHouse/WallBack"]
+mesh = SubResource("Mesh_wall_long")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="RuinedHouse/WallBack"]
+shape = SubResource("Shape_wall_long")
+
+[node name="WallLeft" type="StaticBody3D" parent="RuinedHouse"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4, 1.5, 0)
+
+[node name="Mesh" type="MeshInstance3D" parent="RuinedHouse/WallLeft"]
+mesh = SubResource("Mesh_wall_side")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="RuinedHouse/WallLeft"]
+shape = SubResource("Shape_wall_side")
+
+[node name="WallRightBroken" type="StaticBody3D" parent="RuinedHouse"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4, 0.7, 0)
+
+[node name="Mesh" type="MeshInstance3D" parent="RuinedHouse/WallRightBroken"]
+mesh = SubResource("Mesh_wall_broken")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="RuinedHouse/WallRightBroken"]
+shape = SubResource("Shape_wall_broken")
+
+[node name="WallFrontL" type="StaticBody3D" parent="RuinedHouse"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.5, 1.5, 4)
+
+[node name="Mesh" type="MeshInstance3D" parent="RuinedHouse/WallFrontL"]
+mesh = SubResource("Mesh_wall_front")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="RuinedHouse/WallFrontL"]
+shape = SubResource("Shape_wall_front")
+
+[node name="WallFrontR" type="StaticBody3D" parent="RuinedHouse"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.5, 1.5, 4)
+
+[node name="Mesh" type="MeshInstance3D" parent="RuinedHouse/WallFrontR"]
+mesh = SubResource("Mesh_wall_front")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="RuinedHouse/WallFrontR"]
+shape = SubResource("Shape_wall_front")
+
+[node name="Crate1" type="StaticBody3D" parent="RuinedHouse"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3, 0.5, -3)
+
+[node name="Mesh" type="MeshInstance3D" parent="RuinedHouse/Crate1"]
+mesh = SubResource("Mesh_crate")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="RuinedHouse/Crate1"]
+shape = SubResource("Shape_crate")
+
+[node name="Crate2" type="StaticBody3D" parent="RuinedHouse"]
+transform = Transform3D(0.866, 0, 0.5, 0, 1, 0, -0.5, 0, 0.866, 2.5, 0.5, -2.8)
+
+[node name="Mesh" type="MeshInstance3D" parent="RuinedHouse/Crate2"]
+mesh = SubResource("Mesh_crate")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="RuinedHouse/Crate2"]
+shape = SubResource("Shape_crate")
+
+[node name="CarWreck" type="StaticBody3D" parent="."]
+transform = Transform3D(0.94, 0, 0.342, 0, 1, 0, -0.342, 0, 0.94, 10, 0.7, -4)
+
+[node name="Mesh" type="MeshInstance3D" parent="CarWreck"]
+mesh = SubResource("Mesh_car")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="CarWreck"]
+shape = SubResource("Shape_car")
+
+[node name="RadiationZone" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -14, 0.03, 6)
+mesh = SubResource("Mesh_radiation")
+
+[node name="Player" parent="." instance=ExtResource("1_player")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.1, 6)
