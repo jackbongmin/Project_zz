@@ -1,0 +1,14 @@
+[gd_resource type="ItemData" load_steps=2 format=3]
+
+[ext_resource type="PackedScene" path="res://assets/models/implement/Survival Pack-glb/Battery.glb" id="1_model"]
+
+[resource]
+id = &"battery"
+display_name = "배터리"
+description = "아직 전기가 남아 있다. 라디오나 손전등에 쓴다."
+category = 5
+max_stack = 10
+weight = 0.1
+equip_slot = 0
+model = ExtResource("1_model")
+model_scale = 0.26

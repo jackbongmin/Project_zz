@@ -1,0 +1,14 @@
+[gd_resource type="ItemData" load_steps=2 format=3]
+
+[ext_resource type="PackedScene" path="res://assets/models/implement/Survival Pack-glb/Flare Gun.glb" id="1_model"]
+
+[resource]
+id = &"flare_gun"
+display_name = "신호탄총"
+description = "구조 신호를 쏘아 올릴 수 있다. 탄은 귀하다."
+category = 4
+max_stack = 1
+weight = 0.8
+equip_slot = 1
+model = ExtResource("1_model")
+model_scale = 0.1

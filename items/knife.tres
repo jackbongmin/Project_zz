@@ -1,0 +1,15 @@
+[gd_resource type="ItemData" load_steps=2 format=3]
+
+[ext_resource type="PackedScene" path="res://assets/models/implement/Survival Pack-glb/Knife.glb" id="1_model"]
+
+[resource]
+id = &"knife"
+display_name = "칼"
+description = "작고 날카로운 칼. 고기를 손질하거나 천을 자를 때 쓴다."
+category = 4
+max_stack = 1
+weight = 0.3
+equip_slot = 1
+model = ExtResource("1_model")
+model_scale = 0.19
+ground_rotation_degrees = Vector3(0, 0, 90)

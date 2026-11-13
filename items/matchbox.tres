@@ -1,0 +1,14 @@
+[gd_resource type="ItemData" load_steps=2 format=3]
+
+[ext_resource type="PackedScene" path="res://assets/models/implement/Survival Pack-glb/Matchbox.glb" id="1_model"]
+
+[resource]
+id = &"matchbox"
+display_name = "성냥갑"
+description = "불을 피우는 데 필요하다. 젖지 않게 조심."
+category = 5
+max_stack = 5
+weight = 0.05
+equip_slot = 0
+model = ExtResource("1_model")
+model_scale = 0.1

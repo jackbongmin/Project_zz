@@ -1,0 +1,14 @@
+[gd_resource type="ItemData" load_steps=2 format=3]
+
+[ext_resource type="PackedScene" path="res://assets/models/implement/Survival Pack-glb/Water Bottle.glb" id="1_model"]
+
+[resource]
+id = &"water_bottle"
+display_name = "물병"
+description = "깨끗한 물이 든 병. 이 세상에선 귀한 물건이다."
+category = 2
+max_stack = 5
+weight = 0.6
+equip_slot = 0
+model = ExtResource("1_model")
+model_scale = 0.19

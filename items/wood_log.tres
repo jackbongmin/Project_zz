@@ -1,0 +1,14 @@
+[gd_resource type="ItemData" load_steps=2 format=3]
+
+[ext_resource type="PackedScene" path="res://assets/models/implement/Survival Pack-glb/Wood Log.glb" id="1_model"]
+
+[resource]
+id = &"wood_log"
+display_name = "통나무"
+description = "건축과 땔감의 기본 재료."
+category = 5
+max_stack = 10
+weight = 3.0
+equip_slot = 0
+model = ExtResource("1_model")
+model_scale = 0.19

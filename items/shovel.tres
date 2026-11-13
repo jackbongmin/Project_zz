@@ -1,0 +1,15 @@
+[gd_resource type="ItemData" load_steps=2 format=3]
+
+[ext_resource type="PackedScene" path="res://assets/models/implement/Survival Pack-glb/Shovel.glb" id="1_model"]
+
+[resource]
+id = &"shovel"
+display_name = "삽"
+description = "땅을 파거나 무너진 잔해를 치울 때 쓴다."
+category = 4
+max_stack = 1
+weight = 2.0
+equip_slot = 1
+model = ExtResource("1_model")
+model_scale = 0.26
+ground_rotation_degrees = Vector3(0, 0, 90)

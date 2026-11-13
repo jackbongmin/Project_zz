@@ -1,0 +1,14 @@
+[gd_resource type="ItemData" load_steps=2 format=3]
+
+[ext_resource type="PackedScene" path="res://assets/models/implement/Survival Pack-glb/First Aid Kit.glb" id="1_model"]
+
+[resource]
+id = &"first_aid_kit"
+display_name = "구급상자"
+description = "붕대와 소독약이 들어 있다."
+category = 3
+max_stack = 3
+weight = 0.8
+equip_slot = 0
+model = ExtResource("1_model")
+model_scale = 0.19

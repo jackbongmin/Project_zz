@@ -1,0 +1,15 @@
+[gd_resource type="ItemData" load_steps=2 format=3]
+
+[ext_resource type="PackedScene" path="res://assets/models/implement/Survival Pack-glb/Axe.glb" id="1_model"]
+
+[resource]
+id = &"axe"
+display_name = "손도끼"
+description = "나무를 베거나 문을 부술 때 쓰는 손도끼. 급할 땐 무기로도 쓴다."
+category = 4
+max_stack = 1
+weight = 1.2
+equip_slot = 1
+model = ExtResource("1_model")
+model_scale = 0.215
+ground_rotation_degrees = Vector3(0, 0, 90)

@@ -1,0 +1,14 @@
+[gd_resource type="ItemData" load_steps=2 format=3]
+
+[ext_resource type="PackedScene" path="res://assets/models/implement/Survival Pack-glb/Pot.glb" id="1_model"]
+
+[resource]
+id = &"cooking_pot"
+display_name = "냄비"
+description = "물을 끓이거나 요리할 때 쓴다."
+category = 4
+max_stack = 1
+weight = 1.2
+equip_slot = 0
+model = ExtResource("1_model")
+model_scale = 0.17

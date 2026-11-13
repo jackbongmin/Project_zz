@@ -1,0 +1,15 @@
+[gd_resource type="ItemData" load_steps=2 format=3]
+
+[ext_resource type="PackedScene" path="res://assets/models/implement/Survival Pack-glb/Wooden Torch.glb" id="1_model"]
+
+[resource]
+id = &"wooden_torch"
+display_name = "횃불"
+description = "어두운 곳을 밝혀준다. 오래 타지는 않는다."
+category = 4
+max_stack = 1
+weight = 0.5
+equip_slot = 1
+model = ExtResource("1_model")
+model_scale = 0.22
+ground_rotation_degrees = Vector3(0, 0, 90)

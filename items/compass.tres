@@ -1,0 +1,14 @@
+[gd_resource type="ItemData" load_steps=2 format=3]
+
+[ext_resource type="PackedScene" path="res://assets/models/implement/Survival Pack-glb/Compass.glb" id="1_model"]
+
+[resource]
+id = &"compass"
+display_name = "나침반"
+description = "방향을 알려준다. 낡았지만 아직 정확하다."
+category = 0
+max_stack = 1
+weight = 0.1
+equip_slot = 0
+model = ExtResource("1_model")
+model_scale = 0.13

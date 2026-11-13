@@ -1,0 +1,14 @@
+[gd_resource type="ItemData" load_steps=2 format=3]
+
+[ext_resource type="PackedScene" path="res://assets/models/implement/Survival Pack-glb/Can.glb" id="1_model"]
+
+[resource]
+id = &"canned_food"
+display_name = "통조림"
+description = "유통기한은 지났지만 아직 먹을 만하다."
+category = 1
+max_stack = 5
+weight = 0.4
+equip_slot = 0
+model = ExtResource("1_model")
+model_scale = 0.19

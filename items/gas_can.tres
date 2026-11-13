@@ -1,0 +1,14 @@
+[gd_resource type="ItemData" load_steps=2 format=3]
+
+[ext_resource type="PackedScene" path="res://assets/models/implement/Survival Pack-glb/Gas Can.glb" id="1_model"]
+
+[resource]
+id = &"gas_can"
+display_name = "기름통"
+description = "휘발유가 반쯤 남은 통. 발전기 연료로 쓴다."
+category = 5
+max_stack = 1
+weight = 4.0
+equip_slot = 0
+model = ExtResource("1_model")
+model_scale = 0.18

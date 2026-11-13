@@ -1,0 +1,16 @@
+[gd_resource type="ItemData" load_steps=2 format=3]
+
+[ext_resource type="PackedScene" path="res://assets/models/implement/Survival Pack-glb/Backpack.glb" id="1_model"]
+
+[resource]
+id = &"backpack"
+display_name = "배낭"
+description = "등에 메는 배낭. 더 많은 짐을 나를 수 있다."
+category = 6
+max_stack = 1
+weight = 1.0
+equip_slot = 4
+model = ExtResource("1_model")
+model_scale = 0.165
+hold_position = Vector3(0, -0.12, 0)
+hold_rotation_degrees = Vector3(0, 0, 0)
