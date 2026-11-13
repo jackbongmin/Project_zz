@@ -44,6 +44,7 @@ void PickupItem::_notification(int p_what) {
 		set_collision_layer(INTERACT_LAYER);
 		set_collision_mask(0);
 		set_monitoring(false);
+		add_to_group("pickups");
 		rebuild();
 	}
 }

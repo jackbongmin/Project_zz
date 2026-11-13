@@ -7,6 +7,7 @@
 
 #include "inventory.h"
 #include "inventory_slot.h"
+#include "pickup_item.h"
 
 namespace godot {
 
@@ -27,6 +28,10 @@ private:
 
 	std::vector<InventorySlot *> inventory_slots; // indexed by inventory slot
 	InventorySlot *gear_slots[ItemData::SLOT_COUNT] = {};
+	std::vector<InventorySlot *> nearby_slots;
+	std::vector<ObjectID> nearby_pickups; // parallel to nearby_slots
+	double nearby_scan_timer = 0.0;
+	Label *nearby_title = nullptr;
 	Label *weight_label = nullptr;
 	Label *info_name = nullptr;
 	Label *info_meta = nullptr;
@@ -35,6 +40,8 @@ private:
 	void build();
 	bool bind_player();
 	void refresh();
+	void refresh_nearby();
+	PickupItem *get_nearby_pickup(int p_index) const;
 	InventorySlot *make_slot(int p_kind, int p_index, const String &p_key, const String &p_placeholder);
 
 protected:

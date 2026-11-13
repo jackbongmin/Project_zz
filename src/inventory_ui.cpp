@@ -19,6 +19,9 @@ using namespace godot;
 
 namespace {
 constexpr int GRID_COLUMNS = 5;
+constexpr int NEARBY_COLUMNS = 3;
+constexpr int NEARBY_SLOTS = 12;
+constexpr double NEARBY_SCAN_SECONDS = 0.25;
 
 Label *make_label(const String &p_text, int p_size, const Color &p_color = Color(1, 1, 1, 1)) {
 	Label *label = memnew(Label);
@@ -70,6 +73,44 @@ bool InventoryUI::bind_player() {
 void InventoryUI::_process(double p_delta) {
 	if (!inventory) {
 		bind_player();
+		return;
+	}
+	if (open) {
+		nearby_scan_timer -= p_delta;
+		if (nearby_scan_timer <= 0.0) {
+			refresh_nearby();
+		}
+	}
+}
+
+PickupItem *InventoryUI::get_nearby_pickup(int p_index) const {
+	if (p_index < 0 || p_index >= (int)nearby_pickups.size() || nearby_pickups[p_index].is_null()) {
+		return nullptr;
+	}
+	PickupItem *pickup = Object::cast_to<PickupItem>(ObjectDB::get_instance(nearby_pickups[p_index]));
+	if (!pickup || pickup->is_queued_for_deletion()) {
+		return nullptr;
+	}
+	return pickup;
+}
+
+void InventoryUI::refresh_nearby() {
+	nearby_scan_timer = NEARBY_SCAN_SECONDS;
+	if (!player || nearby_slots.empty()) {
+		return;
+	}
+	const TypedArray<PickupItem> found = player->get_nearby_pickups();
+	for (int i = 0; i < (int)nearby_slots.size(); i++) {
+		PickupItem *pickup = i < found.size() ? Object::cast_to<PickupItem>(found[i]) : nullptr;
+		nearby_pickups[i] = pickup ? ObjectID(pickup->get_instance_id()) : ObjectID();
+		nearby_slots[i]->set_content(pickup ? pickup->get_item() : Ref<ItemData>(), pickup ? pickup->get_count() : 0);
+	}
+	if (nearby_title) {
+		String title = u8("주변 ") + String::num(player->get_nearby_radius(), 0) + "m";
+		if (found.size() > (int)nearby_slots.size()) {
+			title += "  (+" + String::num_int64(found.size() - nearby_slots.size()) + ")";
+		}
+		nearby_title->set_text(title);
 	}
 }
 
@@ -149,6 +190,28 @@ void InventoryUI::build() {
 		grid->add_child(slot);
 	}
 
+	// Nearby pickups (items lying within the player's nearby radius)
+	VBoxContainer *near_col = memnew(VBoxContainer);
+	near_col->add_theme_constant_override("separation", 8);
+	body->add_child(near_col);
+	nearby_title = make_label(u8("주변"), 16, ui::TEXT_DIM);
+	near_col->add_child(nearby_title);
+	PanelContainer *near_panel = memnew(PanelContainer);
+	near_panel->add_theme_stylebox_override("panel", ui::make_box(Color(0.2, 0.26, 0.14, 0.35), Color(0.4, 0.55, 0.28, 0.6), 1, 8, 6));
+	near_panel->set_mouse_filter(MOUSE_FILTER_PASS);
+	near_col->add_child(near_panel);
+	GridContainer *near_grid = memnew(GridContainer);
+	near_grid->set_columns(NEARBY_COLUMNS);
+	near_grid->add_theme_constant_override("h_separation", 6);
+	near_grid->add_theme_constant_override("v_separation", 6);
+	near_panel->add_child(near_grid);
+	for (int i = 0; i < NEARBY_SLOTS; i++) {
+		InventorySlot *slot = make_slot(InventorySlot::KIND_NEARBY, i, "", "");
+		nearby_slots.push_back(slot);
+		near_grid->add_child(slot);
+	}
+	nearby_pickups.assign(NEARBY_SLOTS, ObjectID());
+
 	// Quick slots
 	root->add_child(make_label(u8("퀵슬롯"), 16, ui::TEXT_DIM));
 	HBoxContainer *hotbar = memnew(HBoxContainer);
@@ -174,7 +237,7 @@ void InventoryUI::build() {
 	info_desc->set_custom_minimum_size(Vector2(560, 0));
 	info->add_child(info_desc);
 
-	root->add_child(make_label(u8("드래그: 옮기기   우클릭: 장착/퀵슬롯 이동   창 밖으로 드래그: 버리기   Tab/Esc: 닫기"), 13, ui::TEXT_DIM));
+	root->add_child(make_label(u8("드래그: 옮기기 · 주변 칸에서 끌어오면 줍기   우클릭: 장착/이동/줍기   창 밖이나 주변 칸으로 끌기: 버리기   Tab/Esc: 닫기"), 13, ui::TEXT_DIM));
 	show_item_info(Ref<ItemData>());
 }
 
@@ -217,6 +280,7 @@ void InventoryUI::set_open(bool p_open) {
 	player->set_input_locked(open);
 	if (open) {
 		refresh();
+		refresh_nearby();
 	}
 }
 
@@ -234,6 +298,9 @@ void InventoryUI::show_item_info(const Ref<ItemData> &p_item) {
 	}
 	info_name->set_text(p_item->get_display_name());
 	String meta = ItemData::get_category_name(p_item->get_category());
+	if (p_item->get_use_type() != ItemData::USE_OTHER) {
+		meta += u8("  ·  ") + ItemData::get_use_type_name(p_item->get_use_type()) + u8(" 공격력 ") + String::num(p_item->get_damage(), 0);
+	}
 	if (p_item->get_equip_slot() == ItemData::SLOT_HAND) {
 		meta += u8("  ·  손에 들기 (퀵슬롯)");
 	} else if (p_item->is_equippable()) {
@@ -263,6 +330,17 @@ bool InventoryUI::can_drop(int p_src_kind, int p_src_index, int p_dst_kind, int 
 	if (p_src_kind == InventorySlot::KIND_GEAR && p_dst_kind == InventorySlot::KIND_INVENTORY) {
 		return true;
 	}
+	// Nearby (ground) <-> inventory
+	if (p_src_kind == InventorySlot::KIND_NEARBY && p_dst_kind == InventorySlot::KIND_INVENTORY) {
+		return get_nearby_pickup(p_src_index) != nullptr;
+	}
+	if (p_src_kind == InventorySlot::KIND_NEARBY && p_dst_kind == InventorySlot::KIND_GEAR) {
+		const PickupItem *pickup = get_nearby_pickup(p_src_index);
+		return pickup && pickup->get_item()->get_equip_slot() == p_dst_index && inventory->get_equipped(p_dst_index).is_null();
+	}
+	if (p_dst_kind == InventorySlot::KIND_NEARBY) {
+		return p_src_kind != InventorySlot::KIND_NEARBY; // drop onto the ground
+	}
 	return false;
 }
 
@@ -276,7 +354,21 @@ void InventoryUI::handle_drop(int p_src_kind, int p_src_index, int p_dst_kind, i
 		inventory->equip_from_slot(p_src_index);
 	} else if (p_src_kind == InventorySlot::KIND_GEAR && p_dst_kind == InventorySlot::KIND_INVENTORY) {
 		inventory->unequip(p_src_index, p_dst_index);
+	} else if (p_src_kind == InventorySlot::KIND_NEARBY && p_dst_kind == InventorySlot::KIND_INVENTORY) {
+		player->take_pickup(get_nearby_pickup(p_src_index), p_dst_index);
+	} else if (p_src_kind == InventorySlot::KIND_NEARBY && p_dst_kind == InventorySlot::KIND_GEAR) {
+		const int slot = inventory->find_first_empty(Inventory::HOTBAR_SIZE);
+		if (slot >= 0 && player->take_pickup(get_nearby_pickup(p_src_index), slot) > 0) {
+			inventory->equip_from_slot(slot);
+		}
+	} else if (p_dst_kind == InventorySlot::KIND_NEARBY) {
+		if (p_src_kind == InventorySlot::KIND_GEAR) {
+			player->drop_equipped(p_src_index);
+		} else {
+			player->drop_from_slot(p_src_index);
+		}
 	}
+	refresh_nearby();
 }
 
 void InventoryUI::handle_secondary(int p_kind, int p_index) {
@@ -285,6 +377,11 @@ void InventoryUI::handle_secondary(int p_kind, int p_index) {
 	}
 	if (p_kind == InventorySlot::KIND_GEAR) {
 		inventory->unequip(p_index);
+		return;
+	}
+	if (p_kind == InventorySlot::KIND_NEARBY) {
+		player->take_pickup(get_nearby_pickup(p_index), -1); // right-click: take it
+		refresh_nearby();
 		return;
 	}
 	const Ref<ItemData> item = inventory->get_item(p_index);
@@ -320,7 +417,7 @@ bool InventoryUI::_can_drop_data(const Vector2 &p_at_position, const Variant &p_
 		return false;
 	}
 	const Dictionary data = p_data;
-	return String(data.get("type", "")) == "inventory_item";
+	return String(data.get("type", "")) == "inventory_item" && int(data["kind"]) != InventorySlot::KIND_NEARBY;
 }
 
 void InventoryUI::_drop_data(const Vector2 &p_at_position, const Variant &p_data) {
@@ -334,4 +431,5 @@ void InventoryUI::_drop_data(const Vector2 &p_at_position, const Variant &p_data
 	} else {
 		player->drop_from_slot(int(data["index"]));
 	}
+	refresh_nearby();
 }

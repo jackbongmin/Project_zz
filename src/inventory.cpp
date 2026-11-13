@@ -6,6 +6,7 @@ using namespace godot;
 
 void Inventory::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("add_item", "item", "count"), &Inventory::add_item);
+	ClassDB::bind_method(D_METHOD("add_to_slot", "slot", "item", "count"), &Inventory::add_to_slot);
 	ClassDB::bind_method(D_METHOD("remove_from_slot", "slot", "count"), &Inventory::remove_from_slot);
 	ClassDB::bind_method(D_METHOD("move_slot", "from", "to"), &Inventory::move_slot);
 	ClassDB::bind_method(D_METHOD("count_item", "id"), &Inventory::count_item);
@@ -69,6 +70,25 @@ int Inventory::add_item(const Ref<ItemData> &p_item, int p_count) {
 		notify_changed();
 	}
 	return left;
+}
+
+int Inventory::add_to_slot(int p_slot, const Ref<ItemData> &p_item, int p_count) {
+	if (!valid_slot(p_slot) || p_item.is_null() || p_count <= 0) {
+		return p_count;
+	}
+	Stack &s = slots[p_slot];
+	if (!s.is_empty() && s.item != p_item) {
+		return p_count;
+	}
+	const int room = p_item->get_max_stack() - (s.is_empty() ? 0 : s.count);
+	const int moved = MIN(room, p_count);
+	if (moved <= 0) {
+		return p_count;
+	}
+	s.item = p_item;
+	s.count = (s.is_empty() ? 0 : s.count) + moved;
+	notify_changed();
+	return p_count - moved;
 }
 
 int Inventory::remove_from_slot(int p_slot, int p_count) {

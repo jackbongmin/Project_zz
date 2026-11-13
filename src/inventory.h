@@ -46,6 +46,8 @@ public:
 
 	// Adds as much as fits (fills existing stacks, then hotbar, then backpack). Returns the leftover count.
 	int add_item(const Ref<ItemData> &p_item, int p_count);
+	// Puts items into one specific slot (empty or same item). Returns the leftover count.
+	int add_to_slot(int p_slot, const Ref<ItemData> &p_item, int p_count);
 	// Removes up to p_count from a slot and returns how many were removed.
 	int remove_from_slot(int p_slot, int p_count);
 	// Drag & drop between slots: merge same items, otherwise swap.

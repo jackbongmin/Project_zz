@@ -21,6 +21,7 @@ public:
 	enum Kind {
 		KIND_INVENTORY = 0, // index = inventory slot
 		KIND_GEAR = 1, // index = ItemData::EquipSlot
+		KIND_NEARBY = 2, // index = position in the nearby-pickups list
 	};
 
 private:
