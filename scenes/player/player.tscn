@@ -31,3 +31,5 @@ margin = 0.2
 
 [node name="ThirdPersonCamera" type="Camera3D" parent="Head/SpringArm3D"]
 fov = 70.0
+
+[node name="Inventory" type="Inventory" parent="."]
