@@ -1,0 +1,52 @@
+[gd_scene format=3]
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_body"]
+radius = 0.35
+height = 1.8
+
+[sub_resource type="StandardMaterial3D" id="Mat_suit"]
+albedo_color = Color(0.93, 0.62, 0.25, 1)
+
+[sub_resource type="CapsuleMesh" id="CapsuleMesh_body"]
+material = SubResource("Mat_suit")
+radius = 0.35
+height = 1.8
+radial_segments = 12
+rings = 4
+
+[sub_resource type="StandardMaterial3D" id="Mat_visor"]
+albedo_color = Color(0.15, 0.2, 0.25, 1)
+
+[sub_resource type="BoxMesh" id="BoxMesh_visor"]
+material = SubResource("Mat_visor")
+size = Vector3(0.4, 0.15, 0.2)
+
+[node name="Player" type="PlayerController"]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.9, 0)
+shape = SubResource("CapsuleShape3D_body")
+
+[node name="Body" type="Node3D" parent="."]
+
+[node name="Mesh" type="MeshInstance3D" parent="Body"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.9, 0)
+mesh = SubResource("CapsuleMesh_body")
+
+[node name="Visor" type="MeshInstance3D" parent="Body"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.55, -0.28)
+mesh = SubResource("BoxMesh_visor")
+
+[node name="Head" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.6, 0)
+
+[node name="FirstPersonCamera" type="Camera3D" parent="Head"]
+fov = 80.0
+
+[node name="SpringArm3D" type="SpringArm3D" parent="Head"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.5, 0.2, 0)
+spring_length = 3.5
+margin = 0.2
+
+[node name="ThirdPersonCamera" type="Camera3D" parent="Head/SpringArm3D"]
+fov = 70.0
