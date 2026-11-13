@@ -1,0 +1,126 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" path="res://assets/models/Background/Furniture Kit-glb/Wall Window.glb" id="w_window"]
+[ext_resource type="PackedScene" path="res://assets/models/Background/Furniture Kit-glb/Wall Doorway.glb" id="w_door"]
+[ext_resource type="PackedScene" path="res://assets/models/Background/Furniture Kit-glb/Kitchen Fridge.glb" id="f_fridge"]
+[ext_resource type="PackedScene" path="res://assets/models/Background/Furniture Kit-glb/Kitchen Cabinet.glb" id="f_cabinet"]
+[ext_resource type="PackedScene" path="res://assets/models/Background/Furniture Kit-glb/Bookcase Closed.glb" id="f_bookcase"]
+[ext_resource type="PackedScene" path="res://assets/models/Background/Furniture Kit-glb/Bed Single.glb" id="f_bed"]
+[ext_resource type="PackedScene" path="res://assets/models/Background/Furniture Kit-glb/Table.glb" id="f_table"]
+[ext_resource type="PackedScene" path="res://assets/models/Background/Furniture Kit-glb/Chair.glb" id="f_chair"]
+[ext_resource type="PackedScene" path="res://assets/models/Background/Furniture Kit-glb/Lounge Sofa.glb" id="f_sofa"]
+[ext_resource type="PackedScene" path="res://assets/models/Background/Furniture Kit-glb/Television Vintage.glb" id="f_tv"]
+[ext_resource type="PackedScene" path="res://assets/models/Background/Furniture Kit-glb/Trashcan.glb" id="f_trash"]
+[ext_resource type="PackedScene" path="res://assets/models/Background/Furniture Kit-glb/Cardboard Box Closed.glb" id="f_box"]
+[ext_resource type="PackedScene" path="res://assets/models/Background/Furniture Kit-glb/Cardboard Box Open.glb" id="f_box_open"]
+[ext_resource type="PackedScene" path="res://assets/models/Background/Furniture Kit-glb/Rug Rectangle.glb" id="d_rug"]
+
+[sub_resource type="StandardMaterial3D" id="Mat_floor"]
+albedo_color = Color(0.42, 0.33, 0.24, 1)
+roughness = 1.0
+
+[sub_resource type="BoxMesh" id="Mesh_floor"]
+material = SubResource("Mat_floor")
+size = Vector3(8.4, 0.1, 6.3)
+
+[sub_resource type="BoxShape3D" id="Shape_floor"]
+size = Vector3(8.4, 0.1, 6.3)
+
+[node name="RuinedHouse" type="Node3D"]
+
+[node name="Floor" type="StaticBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.03, 0)
+
+[node name="Mesh" type="MeshInstance3D" parent="Floor"]
+mesh = SubResource("Mesh_floor")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Floor"]
+shape = SubResource("Shape_floor")
+
+[node name="Walls" type="AutoCollider" parent="."]
+
+[node name="FrontA" parent="Walls" instance=ExtResource("w_window")]
+transform = Transform3D(2.1, 0, 0, 0, 2.1, 0, 0, 0, 2.1, -2.1, 0, 3.15)
+
+[node name="FrontB" parent="Walls" instance=ExtResource("w_window")]
+transform = Transform3D(2.1, 0, 0, 0, 2.1, 0, 0, 0, 2.1, 0, 0, 3.15)
+
+[node name="FrontDoor" parent="Walls" instance=ExtResource("w_door")]
+transform = Transform3D(2.1, 0, 0, 0, 2.1, 0, 0, 0, 2.1, 2.1, 0, 3.15)
+
+[node name="BackA" parent="Walls" instance=ExtResource("w_window")]
+transform = Transform3D(2.1, 0, 0, 0, 2.1, 0, 0, 0, 2.1, -2.1, 0, -3.15)
+
+[node name="BackB" parent="Walls" instance=ExtResource("w_window")]
+transform = Transform3D(2.1, 0, 0, 0, 2.1, 0, 0, 0, 2.1, 0, 0, -3.15)
+
+[node name="BackC" parent="Walls" instance=ExtResource("w_window")]
+transform = Transform3D(2.1, 0, 0, 0, 2.1, 0, 0, 0, 2.1, 2.1, 0, -3.15)
+
+[node name="BackD" parent="Walls" instance=ExtResource("w_window")]
+transform = Transform3D(2.1, 0, 0, 0, 2.1, 0, 0, 0, 2.1, 4.2, 0, -3.15)
+
+[node name="LeftA" parent="Walls" instance=ExtResource("w_window")]
+transform = Transform3D(0, 0, 2.1, 0, 2.1, 0, -2.1, 0, 0, -4.2, 0, -3.15)
+
+[node name="LeftB" parent="Walls" instance=ExtResource("w_window")]
+transform = Transform3D(0, 0, 2.1, 0, 2.1, 0, -2.1, 0, 0, -4.2, 0, -1.05)
+
+[node name="LeftC" parent="Walls" instance=ExtResource("w_window")]
+transform = Transform3D(0, 0, 2.1, 0, 2.1, 0, -2.1, 0, 0, -4.2, 0, 1.05)
+
+[node name="RightA" parent="Walls" instance=ExtResource("w_window")]
+transform = Transform3D(0, 0, 2.1, 0, 2.1, 0, -2.1, 0, 0, 4.2, 0, -3.15)
+
+[node name="RightC" parent="Walls" instance=ExtResource("w_window")]
+transform = Transform3D(0, 0, 2.1, 0, 2.1, 0, -2.1, 0, 0, 4.2, 0, 1.05)
+
+[node name="Furniture" type="AutoCollider" parent="."]
+mode = 1
+
+[node name="Fridge" parent="Furniture" instance=ExtResource("f_fridge")]
+transform = Transform3D(2.1, 0, 0, 0, 2.1, 0, 0, 0, 2.1, -3, 0.02, -2.95)
+
+[node name="CabinetA" parent="Furniture" instance=ExtResource("f_cabinet")]
+transform = Transform3D(2.1, 0, 0, 0, 2.1, 0, 0, 0, 2.1, -2.1, 0.02, -2.95)
+
+[node name="CabinetB" parent="Furniture" instance=ExtResource("f_cabinet")]
+transform = Transform3D(2.1, 0, 0, 0, 2.1, 0, 0, 0, 2.1, -1.2, 0.02, -2.95)
+
+[node name="Bookcase" parent="Furniture" instance=ExtResource("f_bookcase")]
+transform = Transform3D(2.1, 0, 0, 0, 2.1, 0, 0, 0, 2.1, 1.5, 0.02, -2.95)
+
+[node name="Bed" parent="Furniture" instance=ExtResource("f_bed")]
+transform = Transform3D(2.1, 0, 0, 0, 2.1, 0, 0, 0, 2.1, 4.82, 0.02, -2.95)
+
+[node name="Table" parent="Furniture" instance=ExtResource("f_table")]
+transform = Transform3D(2.1, 0, 0, 0, 2.1, 0, 0, 0, 2.1, 0.9, 0.02, -0.5)
+
+[node name="ChairA" parent="Furniture" instance=ExtResource("f_chair")]
+transform = Transform3D(2.1, 0, 0, 0, 2.1, 0, 0, 0, 2.1, -0.3, 0.02, 0.6)
+
+[node name="ChairB" parent="Furniture" instance=ExtResource("f_chair")]
+transform = Transform3D(2.1, 0, 0, 0, 2.1, 0, 0, 0, 2.1, 0.5, 0.02, 0.6)
+
+[node name="Sofa" parent="Furniture" instance=ExtResource("f_sofa")]
+transform = Transform3D(2.1, 0, 0, 0, 2.1, 0, 0, 0, 2.1, -1, 0.02, 1.8)
+
+[node name="TV" parent="Furniture" instance=ExtResource("f_tv")]
+transform = Transform3D(2.1, 0, 0, 0, 2.1, 0, 0, 0, 2.1, -1.2, 0.02, 0.9)
+
+[node name="Trashcan" parent="Furniture" instance=ExtResource("f_trash")]
+transform = Transform3D(2.1, 0, 0, 0, 2.1, 0, 0, 0, 2.1, 3, 0.02, 0.5)
+
+[node name="LootBoxA" parent="Furniture" instance=ExtResource("f_box")]
+transform = Transform3D(2.1, 0, 0, 0, 2.1, 0, 0, 0, 2.1, -3.2, 0.02, -1.7)
+
+[node name="LootBoxB" parent="Furniture" instance=ExtResource("f_box")]
+transform = Transform3D(2.1, 0, 0, 0, 2.1, 0, 0, 0, 2.1, -3.25, 0.62, -1.65)
+
+[node name="LootBoxOpen" parent="Furniture" instance=ExtResource("f_box_open")]
+transform = Transform3D(2.1, 0, 0, 0, 2.1, 0, 0, 0, 2.1, 3.6, 0.02, 1.8)
+
+[node name="Decor" type="Node3D" parent="."]
+
+[node name="Rug" parent="Decor" instance=ExtResource("d_rug")]
+transform = Transform3D(2.1, 0, 0, 0, 2.1, 0, 0, 0, 2.1, 1.65, 0.025, -1)
