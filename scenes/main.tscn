@@ -8,6 +8,24 @@
 [ext_resource type="PackedScene" path="res://assets/models/Background/Stylized Nature MegaKit.undefined-glb/Rock Medium.glb" id="n_rock1"]
 [ext_resource type="PackedScene" path="res://assets/models/Background/Stylized Nature MegaKit.undefined-glb/Rock Medium-JQxF95498B.glb" id="n_rock2"]
 
+[ext_resource type="ItemData" path="res://items/canned_food.tres" id="i_canned_food"]
+[ext_resource type="ItemData" path="res://items/water_bottle.tres" id="i_water_bottle"]
+[ext_resource type="ItemData" path="res://items/matchbox.tres" id="i_matchbox"]
+[ext_resource type="ItemData" path="res://items/first_aid_kit.tres" id="i_first_aid_kit"]
+[ext_resource type="ItemData" path="res://items/cooking_pot.tres" id="i_cooking_pot"]
+[ext_resource type="ItemData" path="res://items/knife.tres" id="i_knife"]
+[ext_resource type="ItemData" path="res://items/battery.tres" id="i_battery"]
+[ext_resource type="ItemData" path="res://items/radio.tres" id="i_radio"]
+[ext_resource type="ItemData" path="res://items/backpack.tres" id="i_backpack"]
+[ext_resource type="ItemData" path="res://items/pan.tres" id="i_pan"]
+[ext_resource type="ItemData" path="res://items/axe.tres" id="i_axe"]
+[ext_resource type="ItemData" path="res://items/wood_log.tres" id="i_wood_log"]
+[ext_resource type="ItemData" path="res://items/shovel.tres" id="i_shovel"]
+[ext_resource type="ItemData" path="res://items/gas_can.tres" id="i_gas_can"]
+[ext_resource type="ItemData" path="res://items/flare_gun.tres" id="i_flare_gun"]
+[ext_resource type="ItemData" path="res://items/wooden_torch.tres" id="i_wooden_torch"]
+[ext_resource type="ItemData" path="res://items/compass.tres" id="i_compass"]
+
 [sub_resource type="ProceduralSkyMaterial" id="Sky_mat"]
 sky_top_color = Color(0.42, 0.45, 0.4, 1)
 sky_horizon_color = Color(0.72, 0.68, 0.55, 1)
@@ -102,13 +120,13 @@ mesh = SubResource("Mesh_radiation")
 mode = 1
 
 [node name="DeadTree1" parent="Nature" instance=ExtResource("n_dead1")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -9, 0, -6)
+transform = Transform3D(0.5, 0, 0, 0, 0.5, 0, 0, 0, 0.5, -9, 0, -6)
 
 [node name="DeadTree2" parent="Nature" instance=ExtResource("n_dead2")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8, 0, -17)
+transform = Transform3D(0.5, 0, 0, 0, 0.5, 0, 0, 0, 0.5, 8, 0, -17)
 
 [node name="DeadTree3" parent="Nature" instance=ExtResource("n_dead3")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -16, 0, 2)
+transform = Transform3D(0.5, 0, 0, 0, 0.5, 0, 0, 0, 0.5, -16, 0, 2)
 
 [node name="Rock1" parent="Nature" instance=ExtResource("n_rock1")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6, 0, 3)
@@ -118,3 +136,96 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6, 0, -18)
 
 [node name="Player" parent="." instance=ExtResource("1_player")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0.1, 4)
+
+[node name="Pickups" type="Node3D" parent="."]
+
+[node name="canned_food" type="PickupItem" parent="Pickups"]
+transform = Transform3D(0.9397, 0, 0.342, 0, 1, 0, -0.342, 0, 0.9397, 0.3, 0.71, -10.1)
+item = ExtResource("i_canned_food")
+count = 2
+
+[node name="water_bottle" type="PickupItem" parent="Pickups"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.4, 0.71, -9.9)
+item = ExtResource("i_water_bottle")
+count = 1
+
+[node name="matchbox" type="PickupItem" parent="Pickups"]
+transform = Transform3D(0.8192, 0, 0.5736, 0, 1, 0, -0.5736, 0, 0.8192, 0.65, 0.71, -9.75)
+item = ExtResource("i_matchbox")
+count = 3
+
+[node name="first_aid_kit" type="PickupItem" parent="Pickups"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.6, 0.965, -12.45)
+item = ExtResource("i_first_aid_kit")
+count = 1
+
+[node name="cooking_pot" type="PickupItem" parent="Pickups"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.65, 0.965, -12.45)
+item = ExtResource("i_cooking_pot")
+count = 1
+
+[node name="knife" type="PickupItem" parent="Pickups"]
+transform = Transform3D(0.1736, 0, 0.9848, 0, 1, 0, -0.9848, 0, 0.1736, -2.05, 0.965, -12.25)
+item = ExtResource("i_knife")
+count = 1
+
+[node name="battery" type="PickupItem" parent="Pickups"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3.4, 0.02, -10.4)
+item = ExtResource("i_battery")
+count = 4
+
+[node name="radio" type="PickupItem" parent="Pickups"]
+transform = Transform3D(0.9659, 0, -0.2588, 0, 1, 0, 0.2588, 0, 0.9659, 0.2, 0.02, -12.4)
+item = ExtResource("i_radio")
+count = 1
+
+[node name="backpack" type="PickupItem" parent="Pickups"]
+transform = Transform3D(0.866, 0, 0.5, 0, 1, 0, -0.5, 0, 0.866, -2.2, 0.02, -9.3)
+item = ExtResource("i_backpack")
+count = 1
+
+[node name="pan" type="PickupItem" parent="Pickups"]
+transform = Transform3D(0.5, 0, 0.866, 0, 1, 0, -0.866, 0, 0.5, 2.6, 0.02, -9.0)
+item = ExtResource("i_pan")
+count = 1
+
+[node name="axe" type="PickupItem" parent="Pickups"]
+transform = Transform3D(0.766, 0, 0.6428, 0, 1, 0, -0.6428, 0, 0.766, -7.6, 0, -5)
+item = ExtResource("i_axe")
+count = 1
+
+[node name="wood_log" type="PickupItem" parent="Pickups"]
+transform = Transform3D(0.9848, 0, 0.1736, 0, 1, 0, -0.1736, 0, 0.9848, -8.4, 0, -4.1)
+item = ExtResource("i_wood_log")
+count = 3
+
+[node name="shovel" type="PickupItem" parent="Pickups"]
+transform = Transform3D(0.866, 0, -0.5, 0, 1, 0, 0.5, 0, 0.866, 8.6, 0, -1.6)
+item = ExtResource("i_shovel")
+count = 1
+
+[node name="gas_can" type="PickupItem" parent="Pickups"]
+transform = Transform3D(0.9659, 0, 0.2588, 0, 1, 0, -0.2588, 0, 0.9659, 11.9, 0, -2.4)
+item = ExtResource("i_gas_can")
+count = 1
+
+[node name="flare_gun" type="PickupItem" parent="Pickups"]
+transform = Transform3D(0.342, 0, 0.9397, 0, 1, 0, -0.9397, 0, 0.342, 9.0, 0, -6.4)
+item = ExtResource("i_flare_gun")
+count = 1
+
+[node name="wooden_torch" type="PickupItem" parent="Pickups"]
+transform = Transform3D(0.9397, 0, -0.342, 0, 1, 0, 0.342, 0, 0.9397, 2.9, 0, -6.2)
+item = ExtResource("i_wooden_torch")
+count = 1
+
+[node name="compass" type="PickupItem" parent="Pickups"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -13, 0.03, 5.5)
+item = ExtResource("i_compass")
+count = 1
+
+[node name="UI" type="CanvasLayer" parent="."]
+
+[node name="GameHUD" type="GameHUD" parent="UI"]
+
+[node name="InventoryUI" type="InventoryUI" parent="UI"]
