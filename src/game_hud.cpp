@@ -50,6 +50,24 @@ void GameHUD::build() {
 	crosshair->set_mouse_filter(MOUSE_FILTER_IGNORE);
 	add_child(crosshair);
 
+	// Hit marker: four short ticks around the crosshair, flashed when a swing connects
+	hit_marker = memnew(Control);
+	hit_marker->set_anchors_preset(PRESET_CENTER);
+	hit_marker->set_mouse_filter(MOUSE_FILTER_IGNORE);
+	hit_marker->set_visible(false);
+	add_child(hit_marker);
+	const Vector2 ticks[4] = { Vector2(-1, -1), Vector2(1, -1), Vector2(-1, 1), Vector2(1, 1) };
+	for (const Vector2 &dir : ticks) {
+		ColorRect *tick = memnew(ColorRect);
+		tick->set_color(Color(1, 0.95, 0.85, 0.95));
+		tick->set_size(Vector2(7, 2));
+		tick->set_pivot_offset(Vector2(3.5, 1));
+		tick->set_position(dir * 9 - Vector2(3.5, 1));
+		tick->set_rotation(Math::deg_to_rad(dir.x * dir.y > 0 ? 45.0 : -45.0));
+		tick->set_mouse_filter(MOUSE_FILTER_IGNORE);
+		hit_marker->add_child(tick);
+	}
+
 	// Interaction prompt under the crosshair
 	prompt_label = make_outlined_label(18);
 	prompt_label->set_anchors_preset(PRESET_CENTER);
@@ -115,6 +133,7 @@ bool GameHUD::bind_player() {
 	inventory->connect("hotbar_selected", callable_mp(this, &GameHUD::on_hotbar_selected));
 	player->connect("item_picked_up", callable_mp(this, &GameHUD::on_item_picked_up));
 	player->connect("inventory_full", callable_mp(this, &GameHUD::on_inventory_full));
+	player->connect("attack_hit", callable_mp(this, &GameHUD::on_attack_hit));
 	refresh_hotbar();
 	return true;
 }
@@ -130,6 +149,12 @@ void GameHUD::_process(double p_delta) {
 	held_label->set_visible(!locked);
 	const String prompt = player->get_interaction_prompt();
 	prompt_label->set_text(prompt.is_empty() ? String() : String::utf8("[E] 줍기   ") + prompt);
+
+	if (hit_marker_time > 0.0) {
+		hit_marker_time -= p_delta;
+		hit_marker->set_visible(hit_marker_time > 0.0 && !locked);
+		hit_marker->set_modulate(Color(1, 1, 1, MIN(1.0, hit_marker_time / 0.12)));
+	}
 
 	if (held_label_time > 0.0) {
 		held_label_time -= p_delta;
@@ -176,6 +201,11 @@ void GameHUD::on_item_picked_up(const String &p_name, int p_count) {
 
 void GameHUD::on_inventory_full(const String &p_name) {
 	push_toast(String::utf8("가방이 가득 찼어요 (") + p_name + ")", Color(1, 0.55, 0.45, 1));
+}
+
+void GameHUD::on_attack_hit(const Vector3 &p_position, Object *p_collider) {
+	hit_marker_time = 0.25;
+	hit_marker->set_visible(true);
 }
 
 void GameHUD::push_toast(const String &p_text, const Color &p_color) {

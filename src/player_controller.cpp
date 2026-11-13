@@ -15,7 +15,11 @@
 #include <godot_cpp/core/class_db.hpp>
 #include <godot_cpp/core/math.hpp>
 
+#include <godot_cpp/classes/scene_tree.hpp>
+
+#include <algorithm>
 #include <cmath>
+#include <vector>
 
 #include "pickup_item.h"
 
@@ -50,6 +54,34 @@ void add_key_action(InputMap *p_map, const StringName &p_action, Key p_key) {
 	p_map->action_add_event(p_action, ev);
 }
 
+void add_mouse_action(InputMap *p_map, const StringName &p_action, MouseButton p_button) {
+	if (p_map->has_action(p_action)) {
+		return;
+	}
+	p_map->add_action(p_action);
+	Ref<InputEventMouseButton> ev;
+	ev.instantiate();
+	ev->set_button_index(p_button);
+	p_map->action_add_event(p_action, ev);
+}
+
+// The first person viewmodel must not cast shadows: the body (shadow-only) already
+// casts the held item's shadow, so a second one would show two weapons on the ground.
+void disable_shadows(Node *p_node) {
+	GeometryInstance3D *geo = Object::cast_to<GeometryInstance3D>(p_node);
+	if (geo) {
+		geo->set_cast_shadows_setting(GeometryInstance3D::SHADOW_CASTING_SETTING_OFF);
+	}
+	for (int i = 0; i < p_node->get_child_count(); i++) {
+		disable_shadows(p_node->get_child(i));
+	}
+}
+
+double smooth01(double p_t) {
+	const double t = CLAMP(p_t, 0.0, 1.0);
+	return t * t * (3.0 - 2.0 * t);
+}
+
 void clear_children(Node *p_node) {
 	if (!p_node) {
 		return;
@@ -80,6 +112,10 @@ void PlayerController::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("get_inventory"), &PlayerController::get_inventory);
 	ClassDB::bind_method(D_METHOD("get_current_animation"), &PlayerController::get_current_animation);
 	ClassDB::bind_method(D_METHOD("get_body_yaw"), &PlayerController::get_body_yaw);
+	ClassDB::bind_method(D_METHOD("get_nearby_pickups"), &PlayerController::get_nearby_pickups);
+	ClassDB::bind_method(D_METHOD("take_pickup", "pickup", "to_slot"), &PlayerController::take_pickup, DEFVAL(-1));
+	ClassDB::bind_method(D_METHOD("is_attacking"), &PlayerController::is_attacking);
+	ClassDB::bind_method(D_METHOD("attack"), &PlayerController::start_attack);
 
 	BIND_PROP_HINT(Variant::INT, view_mode, PROPERTY_HINT_ENUM, "First Person,Third Person")
 	ADD_GROUP("Movement", "");
@@ -93,6 +129,7 @@ void PlayerController::_bind_methods() {
 	BIND_PROP_HINT(Variant::FLOAT, third_person_distance, PROPERTY_HINT_RANGE, "1,10,0.1")
 	ADD_GROUP("Interaction", "");
 	BIND_PROP_HINT(Variant::FLOAT, interact_range, PROPERTY_HINT_RANGE, "0.5,10,0.1")
+	BIND_PROP_HINT(Variant::FLOAT, nearby_radius, PROPERTY_HINT_RANGE, "0.5,10,0.1")
 	ADD_GROUP("Animation", "anim_");
 	BIND_PROP(Variant::STRING, anim_idle)
 	BIND_PROP(Variant::STRING, anim_walk)
@@ -102,6 +139,8 @@ void PlayerController::_bind_methods() {
 	ADD_SIGNAL(MethodInfo("view_mode_changed", PropertyInfo(Variant::INT, "mode")));
 	ADD_SIGNAL(MethodInfo("item_picked_up", PropertyInfo(Variant::STRING, "name"), PropertyInfo(Variant::INT, "count")));
 	ADD_SIGNAL(MethodInfo("inventory_full", PropertyInfo(Variant::STRING, "name")));
+	ADD_SIGNAL(MethodInfo("attack_started", PropertyInfo(Variant::STRING, "item_name")));
+	ADD_SIGNAL(MethodInfo("attack_hit", PropertyInfo(Variant::VECTOR3, "position"), PropertyInfo(Variant::OBJECT, "collider")));
 }
 
 #undef BIND_PROP
@@ -119,6 +158,7 @@ void PlayerController::ensure_input_actions() {
 	add_key_action(map, "release_mouse", KEY_ESCAPE);
 	add_key_action(map, "interact", KEY_E);
 	add_key_action(map, "inventory", KEY_TAB);
+	add_mouse_action(map, "attack", MOUSE_BUTTON_LEFT);
 	const Key digits[Inventory::HOTBAR_SIZE] = { KEY_1, KEY_2, KEY_3, KEY_4, KEY_5, KEY_6, KEY_7, KEY_8 };
 	for (int i = 0; i < Inventory::HOTBAR_SIZE; i++) {
 		add_key_action(map, StringName("hotbar_" + String::num_int64(i + 1)), digits[i]);
@@ -263,11 +303,113 @@ void PlayerController::_physics_process(double p_delta) {
 	move_and_slide();
 
 	update_body_facing(local_move, p_delta);
-	update_animation(sprinting);
 	if (!input_locked) {
 		update_interaction();
+		// Hold the button to keep swinging.
+		if (!attacking && input->is_action_pressed("attack") && input->get_mouse_mode() == Input::MOUSE_MODE_CAPTURED) {
+			start_attack();
+		}
+	}
+	update_attack(p_delta);
+	update_animation(sprinting);
+}
+
+// --- combat -------------------------------------------------------------------
+
+void PlayerController::start_attack() {
+	if (!inventory || attacking) {
+		return;
+	}
+	const Ref<ItemData> item = inventory->get_held_item();
+	if (item.is_null() || item->get_use_type() != ItemData::USE_MELEE) {
+		return; // ranged / other items: no click action yet
+	}
+	attacking = true;
+	attack_hit_done = false;
+	attack_item = item;
+	attack_elapsed = 0.0;
+	attack_duration = item->get_attack_cooldown();
+	attack_hit_time = attack_duration * 0.45;
+
+	if (anim_player && anim_player->has_animation(item->get_attack_animation())) {
+		const String clip_name = item->get_attack_animation();
+		const double clip_length = anim_player->get_animation(clip_name)->get_length();
+		// Fit the whole clip into one swing.
+		anim_player->play(clip_name, 0.08, clip_length / attack_duration);
+	}
+	emit_signal("attack_started", item->get_display_name());
+}
+
+void PlayerController::update_attack(double p_delta) {
+	if (!attacking) {
+		return;
+	}
+	attack_elapsed += p_delta;
+	if (!attack_hit_done && attack_elapsed >= attack_hit_time) {
+		attack_hit_done = true;
+		perform_attack_hit();
+	}
+	if (attack_elapsed >= attack_duration) {
+		attacking = false;
+		attack_item.unref();
+		if (view_socket) {
+			view_socket->set_transform(Transform3D());
+		}
 	}
 }
+
+void PlayerController::perform_attack_hit() {
+	Camera3D *cam = get_active_camera();
+	if (!cam || !head || attack_item.is_null()) {
+		return;
+	}
+	// Same center-screen ray as interaction; in third person it starts at the camera,
+	// so add the camera's distance to keep the reach measured from the eyes.
+	const Vector3 from = cam->get_global_position();
+	const Vector3 forward = -cam->get_global_transform().basis.get_column(2).normalized();
+	const double camera_offset = from.distance_to(head->get_global_position());
+	const Vector3 to = from + forward * (attack_item->get_attack_range() + camera_offset);
+
+	TypedArray<RID> exclude;
+	exclude.push_back(get_rid());
+	Ref<PhysicsRayQueryParameters3D> query = PhysicsRayQueryParameters3D::create(from, to, WORLD_LAYER, exclude);
+	const Dictionary hit = get_world_3d()->get_direct_space_state()->intersect_ray(query);
+	if (hit.is_empty()) {
+		return;
+	}
+	Object *collider = hit["collider"];
+	const Vector3 position = hit["position"];
+	// Anything that wants to take damage implements apply_damage(amount, position).
+	if (collider && collider->has_method("apply_damage")) {
+		collider->call("apply_damage", attack_item->get_damage(), position);
+	}
+	emit_signal("attack_hit", position, collider);
+}
+
+void PlayerController::update_viewmodel_swing() {
+	if (!view_socket || !attacking || attack_duration <= 0.0) {
+		return;
+	}
+	// Wind up (raise) -> strike (chop down and forward) -> recover.
+	const double p = attack_elapsed / attack_duration;
+	double pitch_deg = 0.0;
+	double push = 0.0;
+	if (p < 0.35) {
+		pitch_deg = 22.0 * smooth01(p / 0.35);
+	} else if (p < 0.55) {
+		const double k = smooth01((p - 0.35) / 0.2);
+		pitch_deg = Math::lerp(22.0, -70.0, k);
+		push = Math::lerp(0.0, -0.18, k);
+	} else {
+		const double k = smooth01((p - 0.55) / 0.45);
+		pitch_deg = Math::lerp(-70.0, 0.0, k);
+		push = Math::lerp(-0.18, 0.0, k);
+	}
+	const Basis basis = Basis::from_euler(Vector3(Math::deg_to_rad(pitch_deg), 0.0, Math::deg_to_rad(pitch_deg * 0.3)));
+	view_socket->set_transform(Transform3D(basis, Vector3(0.0, 0.0, push)));
+}
+
+bool PlayerController::is_attacking() const { return attacking; }
 
 void PlayerController::update_body_facing(const Vector3 &p_local_move, double p_delta) {
 	if (!body) {
@@ -326,23 +468,65 @@ void PlayerController::update_interaction() {
 
 void PlayerController::interact() {
 	PickupItem *pickup = get_focused_pickup();
-	if (!pickup || !inventory || pickup->get_item().is_null()) {
+	if (!pickup) {
 		return;
 	}
-	const Ref<ItemData> item = pickup->get_item();
-	const int count = pickup->get_count();
-	const int left = inventory->add_item(item, count);
-	if (left < count) {
-		emit_signal("item_picked_up", item->get_display_name(), count - left);
-	}
-	if (left == 0) {
-		pickup->queue_free();
+	take_pickup(pickup, -1);
+	if (!pickup->is_inside_tree() || pickup->is_queued_for_deletion()) {
 		focused_pickup = ObjectID();
 		interaction_prompt = String();
+	}
+}
+
+int PlayerController::take_pickup(PickupItem *p_pickup, int p_to_slot) {
+	if (!p_pickup || !inventory || p_pickup->get_item().is_null() || p_pickup->is_queued_for_deletion()) {
+		return 0;
+	}
+	const Ref<ItemData> item = p_pickup->get_item();
+	const int count = p_pickup->get_count();
+	int left = count;
+	if (p_to_slot >= 0) {
+		left = inventory->add_to_slot(p_to_slot, item, left);
+	}
+	left = inventory->add_item(item, left); // whatever did not fit goes anywhere
+	const int taken = count - left;
+	if (taken > 0) {
+		emit_signal("item_picked_up", item->get_display_name(), taken);
+	}
+	if (left == 0) {
+		p_pickup->queue_free();
 	} else {
-		pickup->set_count(left);
+		p_pickup->set_count(left);
 		emit_signal("inventory_full", item->get_display_name());
 	}
+	return taken;
+}
+
+TypedArray<PickupItem> PlayerController::get_nearby_pickups() const {
+	TypedArray<PickupItem> result;
+	if (!is_inside_tree()) {
+		return result;
+	}
+	const Vector3 feet = get_global_position();
+	std::vector<std::pair<double, PickupItem *>> found;
+	TypedArray<Node> nodes = get_tree()->get_nodes_in_group("pickups");
+	for (int i = 0; i < nodes.size(); i++) {
+		PickupItem *pickup = Object::cast_to<PickupItem>(nodes[i]);
+		if (!pickup || pickup->is_queued_for_deletion() || pickup->get_item().is_null()) {
+			continue;
+		}
+		const Vector3 pos = pickup->get_global_position();
+		const double flat = Vector2(pos.x - feet.x, pos.z - feet.z).length();
+		const double height = pos.y - feet.y;
+		if (flat <= nearby_radius && height > -1.0 && height < 2.0) {
+			found.push_back({ flat, pickup });
+		}
+	}
+	std::sort(found.begin(), found.end(), [](const auto &a, const auto &b) { return a.first < b.first; });
+	for (const auto &entry : found) {
+		result.push_back(entry.second);
+	}
+	return result;
 }
 
 void PlayerController::drop_from_slot(int p_slot) {
@@ -419,6 +603,7 @@ void PlayerController::setup_sockets() {
 
 void PlayerController::_process(double p_delta) {
 	update_sockets();
+	update_viewmodel_swing();
 }
 
 void PlayerController::update_sockets() {
@@ -460,6 +645,7 @@ void PlayerController::refresh_equipment_visuals() {
 				Node3D *pivot = memnew(Node3D);
 				pivot->set_transform(hand_item->get_view_transform());
 				pivot->add_child(viewmodel);
+				disable_shadows(viewmodel);
 				view_socket->add_child(pivot);
 			}
 		}
@@ -552,8 +738,8 @@ void PlayerController::setup_animation() {
 }
 
 void PlayerController::update_animation(bool p_sprinting) {
-	if (!anim_player || !is_on_floor()) {
-		return; // keep the current clip while airborne
+	if (!anim_player || attacking || !is_on_floor()) {
+		return; // let the attack clip finish; keep the current clip while airborne
 	}
 	const Vector3 v = get_velocity();
 	const double horizontal_speed = Vector2(v.x, v.z).length();
@@ -604,6 +790,8 @@ void PlayerController::set_third_person_distance(double p_value) {
 double PlayerController::get_third_person_distance() const { return third_person_distance; }
 void PlayerController::set_interact_range(double p_value) { interact_range = p_value; }
 double PlayerController::get_interact_range() const { return interact_range; }
+void PlayerController::set_nearby_radius(double p_value) { nearby_radius = p_value; }
+double PlayerController::get_nearby_radius() const { return nearby_radius; }
 
 void PlayerController::set_anim_idle(const String &p_value) { anim_idle = p_value; }
 String PlayerController::get_anim_idle() const { return anim_idle; }

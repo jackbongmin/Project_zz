@@ -31,6 +31,8 @@ private:
 	Label *prompt_label = nullptr;
 	Label *held_label = nullptr;
 	Control *hotbar = nullptr;
+	Control *hit_marker = nullptr;
+	double hit_marker_time = 0.0;
 	double held_label_time = 0.0;
 	VBoxContainer *toast_box = nullptr;
 	std::vector<Toast> toasts;
@@ -42,6 +44,7 @@ private:
 	void on_hotbar_selected(int p_index);
 	void on_item_picked_up(const String &p_name, int p_count);
 	void on_inventory_full(const String &p_name);
+	void on_attack_hit(const Vector3 &p_position, Object *p_collider);
 	void push_toast(const String &p_text, const Color &p_color);
 
 protected:

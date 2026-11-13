@@ -9,10 +9,9 @@
 #include <godot_cpp/classes/spring_arm3d.hpp>
 
 #include "inventory.h"
+#include "pickup_item.h"
 
 namespace godot {
-
-class PickupItem;
 
 // First/third person player controller.
 // Expected children (see scenes/player/player.tscn):
@@ -40,6 +39,7 @@ private:
 	double mouse_sensitivity = 0.0025;
 	double third_person_distance = 3.5;
 	double interact_range = 2.5;
+	double nearby_radius = 2.0;
 	int view_mode = VIEW_FIRST_PERSON;
 
 	// Animation clip names inside the Body model's AnimationPlayer
@@ -75,6 +75,14 @@ private:
 	Ref<ItemData> shown_hand_item;
 	Ref<ItemData> shown_back_item;
 
+	// Melee attack state
+	bool attacking = false;
+	bool attack_hit_done = false;
+	double attack_elapsed = 0.0;
+	double attack_duration = 0.0;
+	double attack_hit_time = 0.0;
+	Ref<ItemData> attack_item;
+
 	static void ensure_input_actions();
 	void apply_view_mode();
 	void apply_view_visibility();
@@ -87,6 +95,9 @@ private:
 	void update_sockets();
 	void refresh_equipment_visuals();
 	void on_hotbar_selected(int p_index);
+	void update_attack(double p_delta);
+	void perform_attack_hit();
+	void update_viewmodel_swing();
 	PickupItem *get_focused_pickup() const;
 	Camera3D *get_active_camera() const;
 
@@ -104,6 +115,13 @@ public:
 	void drop_from_slot(int p_slot);
 	void drop_equipped(int p_gear_slot);
 	PickupItem *spawn_pickup(const Ref<ItemData> &p_item, int p_count);
+	// Pickups within nearby_radius, closest first (used by the inventory "nearby" panel).
+	TypedArray<PickupItem> get_nearby_pickups() const;
+	// Moves a world pickup into the inventory (into p_to_slot when possible). Returns how many were taken.
+	int take_pickup(PickupItem *p_pickup, int p_to_slot = -1);
+	bool is_attacking() const;
+	// Swings the held melee item (no-op for ranged/other items or while already swinging).
+	void start_attack();
 
 	void set_input_locked(bool p_locked);
 	bool is_input_locked() const;
@@ -128,6 +146,8 @@ public:
 	double get_third_person_distance() const;
 	void set_interact_range(double p_value);
 	double get_interact_range() const;
+	void set_nearby_radius(double p_value);
+	double get_nearby_radius() const;
 	void set_anim_idle(const String &p_value);
 	String get_anim_idle() const;
 	void set_anim_walk(const String &p_value);
