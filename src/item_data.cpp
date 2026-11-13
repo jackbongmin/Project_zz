@@ -28,6 +28,12 @@ void ItemData::_bind_methods() {
 	BIND_PROP_HINT(Variant::FLOAT, weight, PROPERTY_HINT_RANGE, "0,100,0.01")
 	BIND_PROP_HINT(Variant::INT, equip_slot, PROPERTY_HINT_ENUM, "None,Hand,Head,Body,Back")
 	BIND_PROP_HINT(Variant::OBJECT, icon, PROPERTY_HINT_RESOURCE_TYPE, "Texture2D")
+	ADD_GROUP("Combat", "");
+	BIND_PROP_HINT(Variant::INT, use_type, PROPERTY_HINT_ENUM, "Other,Melee,Ranged")
+	BIND_PROP_HINT(Variant::FLOAT, damage, PROPERTY_HINT_RANGE, "0,500,0.5")
+	BIND_PROP_HINT(Variant::FLOAT, attack_range, PROPERTY_HINT_RANGE, "0.5,100,0.1")
+	BIND_PROP_HINT(Variant::FLOAT, attack_cooldown, PROPERTY_HINT_RANGE, "0.1,5,0.05")
+	BIND_PROP(Variant::STRING, attack_animation)
 	ADD_GROUP("Model", "");
 	BIND_PROP_HINT(Variant::OBJECT, model, PROPERTY_HINT_RESOURCE_TYPE, "PackedScene")
 	BIND_PROP_HINT(Variant::FLOAT, model_scale, PROPERTY_HINT_RANGE, "0.001,10,0.001")
@@ -40,6 +46,15 @@ void ItemData::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("is_equippable"), &ItemData::is_equippable);
 	ClassDB::bind_static_method("ItemData", D_METHOD("get_category_name", "category"), &ItemData::get_category_name);
 	ClassDB::bind_static_method("ItemData", D_METHOD("get_slot_name", "slot"), &ItemData::get_slot_name);
+	ClassDB::bind_static_method("ItemData", D_METHOD("get_use_type_name", "use_type"), &ItemData::get_use_type_name);
+}
+
+String ItemData::get_use_type_name(int p_use_type) {
+	switch (p_use_type) {
+		case USE_MELEE: return String::utf8("근거리");
+		case USE_RANGED: return String::utf8("원거리");
+		default: return String::utf8("기타");
+	}
 }
 
 #undef BIND_PROP
@@ -113,6 +128,16 @@ void ItemData::set_weight(double p_value) { weight = p_value; }
 double ItemData::get_weight() const { return weight; }
 void ItemData::set_equip_slot(int p_value) { equip_slot = CLAMP(p_value, 0, SLOT_COUNT - 1); }
 int ItemData::get_equip_slot() const { return equip_slot; }
+void ItemData::set_use_type(int p_value) { use_type = CLAMP(p_value, 0, 2); }
+int ItemData::get_use_type() const { return use_type; }
+void ItemData::set_damage(double p_value) { damage = p_value; }
+double ItemData::get_damage() const { return damage; }
+void ItemData::set_attack_range(double p_value) { attack_range = p_value; }
+double ItemData::get_attack_range() const { return attack_range; }
+void ItemData::set_attack_cooldown(double p_value) { attack_cooldown = MAX(0.1, p_value); }
+double ItemData::get_attack_cooldown() const { return attack_cooldown; }
+void ItemData::set_attack_animation(const String &p_value) { attack_animation = p_value; }
+String ItemData::get_attack_animation() const { return attack_animation; }
 void ItemData::set_icon(const Ref<Texture2D> &p_value) { icon = p_value; }
 void ItemData::set_model(const Ref<PackedScene> &p_value) { model = p_value; }
 Ref<PackedScene> ItemData::get_model() const { return model; }

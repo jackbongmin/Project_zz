@@ -21,6 +21,12 @@ public:
 		SLOT_COUNT = 5,
 	};
 
+	enum UseType {
+		USE_OTHER = 0, // 기타
+		USE_MELEE = 1, // 근거리
+		USE_RANGED = 2, // 원거리
+	};
+
 	enum Category {
 		CAT_MISC = 0,
 		CAT_FOOD = 1,
@@ -39,6 +45,13 @@ private:
 	int max_stack = 1;
 	double weight = 0.1;
 	int equip_slot = SLOT_NONE;
+
+	// Combat
+	int use_type = USE_OTHER;
+	double damage = 0.0;
+	double attack_range = 2.0; // meters from the eyes
+	double attack_cooldown = 0.7; // seconds per swing (also the swing animation length)
+	String attack_animation = "CharacterArmature|Sword_Slash";
 
 	Ref<Texture2D> icon; // optional; falls back to res://assets/icons/<id>.png
 	mutable Ref<Texture2D> cached_icon;
@@ -61,6 +74,7 @@ protected:
 public:
 	static String get_category_name(int p_category);
 	static String get_slot_name(int p_slot);
+	static String get_use_type_name(int p_use_type);
 
 	Node3D *instantiate_model() const; // scaled model, caller owns it
 	Transform3D get_hold_transform() const;
@@ -81,6 +95,16 @@ public:
 	double get_weight() const;
 	void set_equip_slot(int p_value);
 	int get_equip_slot() const;
+	void set_use_type(int p_value);
+	int get_use_type() const;
+	void set_damage(double p_value);
+	double get_damage() const;
+	void set_attack_range(double p_value);
+	double get_attack_range() const;
+	void set_attack_cooldown(double p_value);
+	double get_attack_cooldown() const;
+	void set_attack_animation(const String &p_value);
+	String get_attack_animation() const;
 	void set_icon(const Ref<Texture2D> &p_value);
 	Ref<Texture2D> get_icon() const;
 	void set_model(const Ref<PackedScene> &p_value);
